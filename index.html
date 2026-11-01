@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>True Football Manager - Ultimate ĐTQG</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #1e40af;
+            --accent: #f59e0b;
+            --bg: #090d16;
+            --panel: #131c2e;
+            --panel-light: #1e293b;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #020617;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 25px rgba(0,0,0,0.8);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 12px 15px;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        header h1 {
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            text-align: center;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            margin-top: 6px;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        main {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            padding-bottom: 75px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* UI Components */
+        .card {
+            background: var(--panel);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #1e293b;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 8px;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn:active { transform: scale(0.98); }
+        .btn-success { background: var(--success); }
+        .btn-danger { background: var(--danger); }
+        .btn-accent { background: var(--accent); color: #000; }
+
+        select, input {
+            width: 100%;
+            padding: 9px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            background: var(--panel-light);
+            color: white;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        /* Nav Bar */
+        nav {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background: var(--panel);
+            display: flex;
+            border-top: 1px solid #334155;
+            z-index: 10;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Player Squad */
+        .player-card {
+            background: var(--panel-light);
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--accent);
+            font-size: 0.85rem;
+        }
+
+        .player-pos {
+            font-weight: bold;
+            width: 30px;
+            height: 30px;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.75rem;
+        }
+
+        .player-info { flex: 1; margin-left: 10px; }
+        .player-name { font-weight: bold; }
+        .player-stats { font-size: 0.7rem; color: var(--text-dim); }
+        .player-ovr { font-size: 1rem; font-weight: bold; color: var(--accent); }
+
+        /* Match Simulation */
+        .match-box {
+            background: var(--panel);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .match-log {
+            height: 160px;
+            background: #020617;
+            border-radius: 6px;
+            padding: 8px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 0.78rem;
+            border: 1px solid #334155;
+            margin-bottom: 10px;
+        }
+
+        .log-item { margin-bottom: 4px; border-bottom: 1px solid #1e293b; padding-bottom: 2px; }
+        .log-goal { color: var(--accent); font-weight: bold; }
+        .log-card-y { color: #facc15; }
+        .log-card-r { color: var(--danger); }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            background: var(--panel);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        th, td { padding: 7px; text-align: center; border-bottom: 1px solid #334155; }
+        th { background: rgba(0,0,0,0.4); color: var(--accent); }
+
+        .flex-row { display: flex; gap: 8px; }
+        .flex-row > * { flex: 1; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>True Football Manager</h1>
+        <div class="status-bar" id="statusBar">
+            <span id="txtTeam">--</span>
+            <span id="txtBudget">Ngân sách: $5M</span>
+            <span id="txtRep">Danh tiếng: 50%</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- MÀN HÌNH TẠO HLV & CHỌN ĐỘI -->
+        <section id="screenSelect" class="screen active">
+            <div class="card">
+                <h3>Khởi Nghiệp HLV ĐTQG</h3><br>
+                <label>Tên Huấn Luyện Viên:</label>
+                <input type="text" id="inputManagerName" value="HLV Trưởng">
+                
+                <label>Chọn Đội Tuyển Quốc Gia:</label>
+                <select id="selectTeam">
+                    <option value="Vietnam">Việt Nam (OVR: 68)</option>
+                    <option value="Thailand">Thái Lan (OVR: 70)</option>
+                    <option value="Japan">Nhật Bản (OVR: 78)</option>
+                    <option value="Korea">Hàn Quốc (OVR: 77)</option>
+                    <option value="Brazil">Brazil (OVR: 86)</option>
+                    <option value="France">Pháp (OVR: 87)</option>
+                </select>
+                
+                <button class="btn btn-accent" onclick="initGame()">Nhậm Chức & Bắt Đầu</button>
+            </div>
+        </section>
+
+        <!-- MÀN HÌNH TRANG CHỦ -->
+        <section id="screenHome" class="screen">
+            <div class="card">
+                <h4>Trận Đấu Sắp Tới</h4>
+                <div id="nextMatchInfo" style="margin: 10px 0; font-weight:bold; color:var(--accent);">Đang cập nhật...</div>
+                <button class="btn btn-success" onclick="startMatch()">Bắt Đầu Trận Đấu</button>
+            </div>
+
+            <div class="card">
+                <h4>Thông Tin Liên Đoàn</h4>
+                <p style="font-size:0.85rem; margin-top:5px;">Mục tiêu: Vượt qua Vòng Bảng</p>
+                <p style="font-size:0.85rem;">Áp lực Liên đoàn: <span id="txtPressure" style="color:var(--success)">Thấp (0%)</span></p>
+                <p style="font-size:0.85rem;">Trạng thái HLV: <span id="txtJobStatus" style="color:var(--success)">Ổn định</span></p>
+            </div>
+        </section>
+
+        <!-- MÀN HÌNH ĐỘI HÌNH & CHIẾN THUẬT -->
+        <section id="screenSquad" class="screen">
+            <div class="card">
+                <h4>Cài Đặt Chiến Thuật</h4>
+                <div class="flex-row">
+                    <div>
+                        <label>Sơ đồ:</label>
+                        <select id="selectFormation" onchange="updateTactics()">
+                            <option value="4-3-3">4-3-3 Tấn Công</option>
+                            <option value="4-4-2">4-4-2 Cân Bằng</option>
+                            <option value="3-5-2">3-5-2 Kiểm Soát</option>
+                            <option value="5-3-2">5-3-2 Tử Thủ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Lối chơi:</label>
+                        <select id="selectStyle" onchange="updateTactics()">
+                            <option value="balanced">Cân bằng</option>
+                            <option value="attacking">Tấn công tổng lực</option>
+                            <option value="counter">Phòng ngự phản công</option>
+                            <option value="possession">Kiểm soát bóng</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>Danh Sách Triệu Tập (23 Cầu Thủ)</h4>
+                <div id="squadContainer" style="max-height: 280px; overflow-y: auto; margin-top: 5px;"></div>
+            </div>
+        </section>
+
+        <!-- MÀN HÌNH HUẤN LUYỆN -->
+        <section id="screenTraining" class="screen">
+            <div class="card">
+                <h4>Trung Tâm Tập Luyện & Phục Hồi</h4>
+                <p style="font-size:0.8rem; color:var(--text-dim); margin-bottom:10px;">Dùng ngân sách để cải thiện thể lực hoặc chỉ số cầu thủ.</p>
+                
+                <button class="btn btn-success" onclick="trainTeam('stamina')">Hồi Phục Thể Lực Toàn Đội (-$1M)</button>
+                <button class="btn btn-accent" onclick="trainTeam('ovr')">Tập Luyện Tăng Chỉ Số OVR (-$2M)</button>
+            </div>
+        </section>
+
+        <!-- MÀN HÌNH TRẬN ĐẤU -->
+        <section id="screenMatch" class="screen">
+            <div class="match-box">
+                <span id="matchTimer" style="color:var(--accent); font-weight:bold; font-size:1rem;">00:00</span>
+                <div class="score-board">
+                    <span id="homeTeamName">VIE</span>
+                    <span id="scoreText">0 - 0</span>
+                    <span id="awayTeamName">THA</span>
+                </div>
+                <div class="match-log" id="matchLog"></div>
+                <button class="btn btn-accent" id="btnFinishMatch" style="display:none;" onclick="finishMatch()">Tiếp Tục Sự Nghiệp</button>
+            </div>
+        </section>
+
+        <!-- MÀN HÌNH BXH & LỊCH THI ĐẤU -->
+        <section id="screenTable" class="screen">
+            <div class="card">
+                <h4>Bảng Xếp Hạng Vòng Bảng</h4>
+                <br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Đội</th>
+                            <th>ST</th>
+                            <th>T</th>
+                            <th>H</th>
+                            <th>B</th>
+                            <th>HS</th>
+                            <th>Đ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <nav id="mainNav" style="display:none;">
+        <div class="nav-item active" onclick="navTo('screenHome', this)">Trang Chủ</div>
+        <div class="nav-item" onclick="navTo('screenSquad', this)">Đội Hình</div>
+        <div class="nav-item" onclick="navTo('screenTraining', this)">Tập Luyện</div>
+        <div class="nav-item" onclick="navTo('screenTable', this)">Giải Đấu</div>
+    </nav>
+</div>
+
+<script>
+    const TEAMS_DATABASE = {
+        "Vietnam": { name: "Việt Nam", short: "VIE", ovr: 68 },
+        "Thailand": { name: "Thái Lan", short: "THA", ovr: 70 },
+        "Japan": { name: "Nhật Bản", short: "JPN", ovr: 78 },
+        "Korea": { name: "Hàn Quốc", short: "KOR", ovr: 77 },
+        "Brazil": { name: "Brazil", short: "BRA", ovr: 86 },
+        "France": { name: "Pháp", short: "FRA", ovr: 87 }
+    };
+
+    const FIRST_NAMES = ["Văn", "Đỗ", "Nguyễn", "Phan", "Bùi", "Trần", "Hoàng", "Lê", "Minh", "Quang"];
+    const LAST_NAMES = ["Lâm", "Hải", "Toàn", "Phượng", "Thanh", "Dũng", "Đạt", "Hậu", "Vương", "Khang", "Tài"];
+
+    let gameState = {
+        managerName: "",
+        userTeamKey: "",
+        budget: 5, // Triệu USD
+        reputation: 50,
+        pressure: 0,
+        formation: "4-3-3",
+        style: "balanced",
+        squad: [],
+        schedule: [],
+        currentMatchIdx: 0,
+        table: {},
+        isGameOver: false
+    };
+
+    function generatePlayerName() {
+        return FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)] + " " + 
+               LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)];
+    }
+
+    function generateSquad(baseOvr) {
+        const positions = ['GK', 'GK', 'DF', 'DF', 'DF', 'DF', 'DF', 'DF', 'MF', 'MF', 'MF', 'MF', 'MF', 'MF', 'FW', 'FW', 'FW', 'FW'];
+        return positions.map((pos, idx) => {
+            const ovr = Math.min(99, Math.max(50, baseOvr + Math.floor(Math.random() * 8) - 4));
+            return {
+                id: idx + 1,
+                name: pos === 'GK' ? 'Thủ Môn ' + (idx+1) : generatePlayerName(),
+                pos: pos,
+                ovr: ovr,
+                stamina: 100,
+                form: 'Ổn định'
+            };
+        });
+    }
+
+    function initGame() {
+        const mName = document.getElementById('inputManagerName').value.trim();
+        const teamKey = document.getElementById('selectTeam').value;
+        if (!mName) return alert("Vui lòng nhập tên HLV!");
+
+        gameState.managerName = mName;
+        gameState.userTeamKey = teamKey;
+        gameState.squad = generateSquad(TEAMS_DATABASE[teamKey].ovr);
+        gameState.budget = 5;
+        gameState.reputation = 50;
+        gameState.pressure = 0;
+        gameState.currentMatchIdx = 0;
+
+        // Chọn bảng gồm 4 đội (Đội user + 3 đội ngẫu nhiên khác)
+        const otherKeys = Object.keys(TEAMS_DATABASE).filter(k => k !== teamKey);
+        // Lấy ngẫu nhiên 3 đối thủ
+        const shuffled = otherKeys.sort(() => 0.5 - Math.random());
+        const groupTeams = [teamKey, shuffled[0], shuffled[1], shuffled[2]];
+
+        gameState.table = {};
+        groupTeams.forEach(k => {
+            gameState.table[k] = { P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 };
+        });
+
+        // Tạo lịch thi đấu 3 vòng bảng
+        gameState.schedule = [
+            { home: teamKey, away: shuffled[0] },
+            { home: teamKey, away: shuffled[1] },
+            { home: teamKey, away: shuffled[2] }
+        ];
+
+        updateUI();
+        document.getElementById('screenSelect').classList.remove('active');
+        document.getElementById('screenHome').classList.add('active');
+        document.getElementById('mainNav').style.display = 'flex';
+
+        renderSquad();
+        renderTable();
+        saveGame();
+    }
+
+    function updateUI() {
+        document.getElementById('txtTeam').innerText = TEAMS_DATABASE[gameState.userTeamKey].name;
+        document.getElementById('txtBudget').innerText = `Ngân sách: $${gameState.budget}M`;
+        document.getElementById('txtRep').innerText = `Danh tiếng: ${gameState.reputation}%`;
+        document.getElementById('txtPressure').innerText = `${gameState.pressure}%`;
+
+        const pressureEl = document.getElementById('txtPressure');
+        const jobStatusEl = document.getElementById('txtJobStatus');
+        if (gameState.pressure > 70) {
+            pressureEl.style.color = "var(--danger)";
+            jobStatusEl.innerText = "Có nguy cơ bị sa thải!";
+            jobStatusEl.style.color = "var(--danger)";
+        } else {
+            pressureEl.style.color = "var(--success)";
+            jobStatusEl.innerText = "Ổn định";
+            jobStatusEl.style.color = "var(--success)";
+        }
+
+        if (gameState.currentMatchIdx < gameState.schedule.length) {
+            const m = gameState.schedule[gameState.currentMatchIdx];
+            document.getElementById('nextMatchInfo').innerText = 
+                `Vòng ${gameState.currentMatchIdx + 1}: ${TEAMS_DATABASE[m.home].name} vs ${TEAMS_DATABASE[m.away].name}`;
+        } else {
+            document.getElementById('nextMatchInfo').innerText = "Đã hoàn thành vòng bảng!";
+        }
+    }
+
+    function renderSquad() {
+        const container = document.getElementById('squadContainer');
+        container.innerHTML = "";
+        gameState.squad.forEach(p => {
+            container.innerHTML += `
+                <div class="player-card">
+                    <div class="player-pos">${p.pos}</div>
+                    <div class="player-info">
+                        <div class="player-name">${p.name}</div>
+                        <div class="player-stats">Thể lực: ${p.stamina}% | Phong độ: ${p.form}</div>
+                    </div>
+                    <div class="player-ovr">${p.ovr}</div>
+                </div>
+            `;
+        });
+    }
+
+    function updateTactics() {
+        gameState.formation = document.getElementById('selectFormation').value;
+        gameState.style = document.getElementById('selectStyle').value;
+        saveGame();
+    }
+
+    function trainTeam(type) {
+        if (type === 'stamina') {
+            if (gameState.budget < 1) return alert("Không đủ ngân sách ($1M cần thiết)!");
+            gameState.budget -= 1;
+            gameState.squad.forEach(p => p.stamina = 100);
+            alert("Toàn đội đã được hồi phục 100% thể lực!");
+        } else if (type === 'ovr') {
+            if (gameState.budget < 2) return alert("Không đủ ngân sách ($2M cần thiết)!");
+            gameState.budget -= 2;
+            gameState.squad.forEach(p => p.ovr = Math.min(99, p.ovr + 1));
+            alert("Đợt tập luyện thành công! Chỉ số toàn đội tăng +1.");
+        }
+        updateUI();
+        renderSquad();
+        saveGame();
+    }
+
+    function navTo(screenId, element) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        element.classList.add('active');
+    }
+
+    // MATCH ENGINE
+    let matchInterval;
+    function startMatch() {
+        if (gameState.currentMatchIdx >= gameState.schedule.length) {
+            return alert("Giải đấu vòng bảng đã kết thúc! Kiểm tra BXH.");
+        }
+
+        const match = gameState.schedule[gameState.currentMatchIdx];
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screenMatch').classList.add('active');
+
+        document.getElementById('homeTeamName').innerText = TEAMS_DATABASE[match.home].short;
+        document.getElementById('awayTeamName').innerText = TEAMS_DATABASE[match.away].short;
+        document.getElementById('scoreText').innerText = "0 - 0";
+        document.getElementById('btnFinishMatch').style.display = "none";
+
+        const logBox = document.getElementById('matchLog');
+        logBox.innerHTML = '<div class="log-item">Trận đấu bắt đầu trọng tài thổi còi khai cuộc!</div>';
+
+        let minute = 0;
+        let hScore = 0;
+        let aScore = 0;
+
+        let homeOvr = TEAMS_DATABASE[match.home].ovr;
+        let awayOvr = TEAMS_DATABASE[match.away].ovr;
+
+        // Buff tùy theo chiến thuật
+        if (gameState.style === 'attacking') homeOvr += 3;
+        if (gameState.style === 'defensive') homeOvr += 2;
+
+        matchInterval = setInterval(() => {
+            minute += 3;
+            document.getElementById('matchTimer').innerText = (minute < 10 ? '0' : '') + minute + ":00";
+
+            const chance = Math.random();
+            if (chance < 0.09) {
+                const isHome = Math.random() * homeOvr > Math.random() * awayOvr;
+                if (isHome) {
+                    hScore++;
+                    logBox.innerHTML = `<div class="log-item log-goal">${minute}' VÀOOO! ${TEAMS_DATABASE[match.home].name} ghi bàn mở tỷ số tuyệt đẹp!</div>` + logBox.innerHTML;
+                } else {
+                    aScore++;
+                    logBox.innerHTML = `<div class="log-item log-goal">${minute}' VÀOOO! ${TEAMS_DATABASE[match.away].name} tận dụng sai lầm ghi bàn!</div>` + logBox.innerHTML;
+                }
+                document.getElementById('scoreText').innerText = `${hScore} - ${aScore}`;
+            } else if (chance > 0.85) {
+                logBox.innerHTML = `<div class="log-item ${Math.random()>0.5?'log-card-y':'log-card-r'}">${minute}' Thẻ phạt cho cầu thủ trên sân do pha phạm lỗi nguy hiểm.</div>` + logBox.innerHTML;
+            }
+
+            if (minute >= 90) {
+                clearInterval(matchInterval);
+                logBox.innerHTML = `<div class="log-item"><b>Hết giờ! Tỷ số chung cuộc: ${hScore} - ${aScore}</b></div>` + logBox.innerHTML;
+                document.getElementById('btnFinishMatch').style.display = "block";
+
+                // Cập nhật BXH
+                updateTableData(match.home, match.away, hScore, aScore);
+                
+                // Cập nhật áp lực & phần thưởng tiền
+                if (hScore > aScore) {
+                    gameState.budget += 2; // Thưởng $2M
+                    gameState.reputation = Math.min(100, gameState.reputation + 5);
+                    gameState.pressure = Math.max(0, gameState.pressure - 15);
+                } else if (hScore < aScore) {
+                    gameState.pressure = Math.min(100, gameState.pressure + 25);
+                    gameState.reputation = Math.max(0, gameState.reputation - 5);
+                }
+            }
+        }, 300);
+    }
+
+    function updateTableData(homeKey, awayKey, hScore, aScore) {
+        const home = gameState.table[homeKey];
+        const away = gameState.table[awayKey];
+
+        home.P++; away.P++;
+        home.GF += hScore; home.GA += aScore;
+        away.GF += aScore; away.GA += hScore;
+
+        if (hScore > aScore) {
+            home.W++; home.Pts += 3;
+            away.L++;
+        } else if (hScore < aScore) {
+            away.W++; away.Pts += 3;
+            home.L++;
+        } else {
+            home.D++; home.Pts += 1;
+            away.D++; away.Pts += 1;
+        }
+    }
+
+    function finishMatch() {
+        gameState.currentMatchIdx++;
+        saveGame();
+        renderTable();
+        updateUI();
+
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screenHome').classList.add('active');
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = "";
+
+        const sortedKeys = Object.keys(gameState.table).sort((a,b) => {
+            const teamA = gameState.table[a];
+            const teamB = gameState.table[b];
+            if (teamB.Pts !== teamA.Pts) return teamB.Pts - teamA.Pts;
+            return (teamB.GF - teamB.GA) - (teamA.GF - teamA.GA);
+        });
+
+        sortedKeys.forEach(key => {
+            const row = gameState.table[key];
+            const gd = row.GF - row.GA;
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${TEAMS_DATABASE[key].short}</b></td>
+                    <td>${row.P}</td>
+                    <td>${row.W}</td>
+                    <td>${row.D}</td>
+                    <td>${row.L}</td>
+                    <td>${gd > 0 ? '+' + gd : gd}</td>
+                    <td><b>${row.Pts}</b></td>
+                </tr>
+            `;
+        });
+    }
+
+    function saveGame() {
+        localStorage.setItem('tfm_ultimate_save', JSON.stringify(gameState));
+    }
+
+    function loadGame() {
+        const saved = localStorage.getItem('tfm_ultimate_save');
+        if (saved) {
+            gameState = JSON.parse(saved);
+            updateUI();
+            renderSquad();
+            renderTable();
+            document.getElementById('screenSelect').classList.remove('active');
+            document.getElementById('screenHome').classList.add('active');
+            document.getElementById('mainNav').style.display = 'flex';
+        }
+    }
+
+    window.onload = loadGame;
+</script>
+</body>
+</html>
